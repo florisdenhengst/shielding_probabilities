@@ -8,8 +8,6 @@ parser = argparse.ArgumentParser(description='Calculate expected # recommendatio
 
 # dial_len
 parser.add_argument('dialogue_length', metavar='L', type=int, nargs=1)
-# n_dials
-parser.add_argument('n_dialogues', metavar='N', type=int, nargs=1)
 # seed
 parser.add_argument('seed', metavar='S', type=int, nargs=1)
 # enforce
@@ -18,7 +16,6 @@ parser.add_argument('enforce_recommendation', metavar='E', type=ast.literal_eval
 args = parser.parse_args()
 
 dial_len = args.dialogue_length[0]
-n_dials = args.n_dialogues[0]
 seed = args.seed[0]
 enforce_rec = args.enforce_recommendation[0]
 
@@ -30,7 +27,7 @@ np.random.seed(seed)
 # 3: verified_profile
 # 4: recommend
 letters = list(np.arange(0,42))
-n = int(5e6) 
+n = 2e8
 
 def generate(dial_len, letters):
     return np.random.choice(letters, dial_len, replace=True)
@@ -64,16 +61,18 @@ def check_order(seq, enforce_rec):
 def check(seq, enforce_rec):
     return check_elements(seq, enforce_rec) and check_order(seq, enforce_rec)
 
-def simulate(n_dials, dial_len, letters, enforce_rec):
-    results_mc = np.zeros(n_dials, dtype=bool)
-    for i in range(n_dials):
-       results_mc[i] = check(generate(dial_len, letters), enforce_rec)
-    return results_mc.sum()
+#def simulate(n_dials, dial_len, letters, enforce_rec):
+#    results_mc = np.zeros(n_dials, dtype=bool)
+#    for i in range(n_dials):
+#       results_mc[i] = check(generate(dial_len, letters), enforce_rec)
+#    return results_mc.sum()
 
+def simulate(dial_len, letters, enforce_rec):
+    return check(generate(dial_len, letters), enforce_rec)
 
-def monte_carlo(n, n_dials, dial_len, letters, enforce_rec):
-    results = Parallel(n_jobs=16)(delayed(simulate)(n_dials, dial_len, letters, enforce_rec) for i in range(n))
+def monte_carlo(n, dial_len, letters, enforce_rec):
+    results = Parallel(n_jobs=16)(delayed(simulate)(dial_len, letters, enforce_rec) for i in range(n))
     return np.array(results)
 
-result = monte_carlo(n, n_dials, dial_len, letters, enforce_rec)
-print(",".join(map(str,[n, dial_len, n_dials, seed, enforce_rec, result.mean(), result.std()])))
+result = monte_carlo(n, dial_len, letters, enforce_rec)
+print(",".join(map(str,[n, dial_len, seed, enforce_rec, result.mean(), result.std()])))
