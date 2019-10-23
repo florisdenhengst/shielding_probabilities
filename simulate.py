@@ -1,25 +1,23 @@
 import argparse
 import math
 import numpy as np
+from joblib import Parallel, delayed
 import ast
 
 parser = argparse.ArgumentParser(description='Calculate expected # recommendations.')
 
-# seq_len
-parser.add_argument('sequence_length', metavar='L', type=int, nargs=1)
-
+# dial_len
+parser.add_argument('dialogue_length', metavar='L', type=int, nargs=1)
 # n_dials
 parser.add_argument('n_dialogues', metavar='N', type=int, nargs=1)
-
 # seed
 parser.add_argument('seed', metavar='S', type=int, nargs=1)
-
 # enforce
 parser.add_argument('enforce_recommendation', metavar='E', type=ast.literal_eval, nargs=1)
 
 args = parser.parse_args()
 
-seq_len = args.sequence_length[0]
+dial_len = args.dialogue_length[0]
 n_dials = args.n_dialogues[0]
 seed = args.seed[0]
 enforce_rec = args.enforce_recommendation[0]
@@ -32,10 +30,10 @@ np.random.seed(seed)
 # 3: verified_profile
 # 4: recommend
 letters = list(np.arange(0,42))
-n = int(3e5) 
+n = int(5e6) 
 
-def generate(seq_len, letters):
-    return np.random.choice(letters, seq_len, replace=True)
+def generate(dial_len, letters):
+    return np.random.choice(letters, dial_len, replace=True)
 
 def check_elements(seq, enforce_rec):
     """
@@ -66,14 +64,16 @@ def check_order(seq, enforce_rec):
 def check(seq, enforce_rec):
     return check_elements(seq, enforce_rec) and check_order(seq, enforce_rec)
 
-def monte_carlo(n, n_dials, seq_len, letters, enforce_rec):
-    results = np.zeros(n, dtype=int)
-    for i in range(n):
-        results_mc = np.zeros(n_dials, dtype=bool)
-        for j in range(n_dials):
-            results_mc[j] = check(generate(seq_len, letters), enforce_rec)
-        results[i] = results_mc.sum()
-    return results
+def simulate(n_dials, dial_len, letters, enforce_rec):
+    results_mc = np.zeros(n_dials, dtype=bool)
+    for i in range(n_dials):
+       results_mc[i] = check(generate(dial_len, letters), enforce_rec)
+    return results_mc.sum()
 
-result = monte_carlo(n, n_dials, seq_len, letters, enforce_rec)
-print(",".join(map(str,[n, seq_len, n_dials, seed, enforce_rec, result.mean(), result.std()])))
+
+def monte_carlo(n, n_dials, dial_len, letters, enforce_rec):
+    results = Parallel(n_jobs=16)(delayed(simulate)(n_dials, dial_len, letters, enforce_rec) for i in range(n))
+    return np.array(results)
+
+result = monte_carlo(n, n_dials, dial_len, letters, enforce_rec)
+print(",".join(map(str,[n, dial_len, n_dials, seed, enforce_rec, result.mean(), result.std()])))
