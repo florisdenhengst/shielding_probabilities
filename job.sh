@@ -9,9 +9,12 @@ dirname="shielding_probabilities"
 
 source ~/venvs/sim_probabilities/bin/activate
 
-stopos next -p $stopos_run
+cd ${TMPDIR}
+
 rm -rf ${dirname}
-cp ~/projects/${dirname} .
+cp -r ~/projects/${dirname} .
 cd ${dirname}
+
+stopos next -p $stopos_run
 python simulate.py $STOPOS_VALUE
 
