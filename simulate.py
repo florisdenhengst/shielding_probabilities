@@ -27,7 +27,7 @@ np.random.seed(seed)
 # 3: verified_profile
 # 4: recommend
 letters = list(np.arange(0,42))
-n = int(2e8)
+n = int(2e2)
 
 def generate(dial_len, letters):
     return np.random.choice(letters, dial_len, replace=True)
