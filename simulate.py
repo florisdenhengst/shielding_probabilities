@@ -36,9 +36,9 @@ def check_elements(seq, enforce_rec):
     Validates that `seq` contains all necessary elements
     """
     if enforce_rec:
-       required_letters = np.array([0,1,2,3])
+       required_letters = np.array([0,1,2,3,])
     else:
-       required_letters = np.array([0,1,2,3,4])
+       required_letters = np.array([0,1,2,])
     return np.all(np.isin(required_letters, seq))
 
 def check_order(seq, enforce_rec):
