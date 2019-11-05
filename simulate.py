@@ -24,8 +24,7 @@ np.random.seed(seed)
 # 0: ko
 # 1: dna
 # 2: dec_profile
-# 3: verified_profile
-# 4: recommend
+# 3: recommend
 letters = list(np.arange(0,42))
 n = int(2e8)
 
@@ -49,13 +48,10 @@ def check_order(seq, enforce_rec):
     if enforce_rec:
        pass
     else:
-       last_recommendation = np.argwhere(seq == 4).max()
-       for i in {0, 1, 2, 3}:
+       last_recommendation = np.argwhere(seq == 3).max()
+       for i in {0, 1, 2}:
           if np.argwhere(seq == i).min() > last_recommendation:
              return False
-    last_verification = np.argwhere(seq == 3).max()
-    if np.argwhere(seq == 2).min() > last_verification:
-        return False
     return True
 
 def check(seq, enforce_rec):
@@ -76,3 +72,4 @@ def monte_carlo(n, dial_len, letters, enforce_rec):
 
 result = monte_carlo(n, dial_len, letters, enforce_rec)
 print(",".join(map(str,[n, dial_len, seed, enforce_rec, result.mean(), result.std()])))
+
